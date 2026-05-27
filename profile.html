@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile | Lumina 8K</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="profile.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo cursor-pointer" onclick="window.location.href='index.html'">
+                <span class="logo-icon"></span>
+                <h1>Lumina 8K</h1>
+            </div>
+            <button class="ghost-btn logout-btn" id="logout-btn">Sign Out</button>
+        </header>
+
+        <main class="profile-grid">
+            <section class="bento-card profile-main scroll-reveal">
+                <div class="profile-header">
+                    <div class="profile-avatar-large"></div>
+                    <div class="profile-info">
+                        <h2>Director User</h2>
+                        <span class="pro-badge">PRO TIER</span>
+                        <p>Creative ID: director@studio.com</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bento-card stats-card scroll-reveal" style="--animation-order: 2;">
+                <h3>Total Rendered Frames</h3>
+                <div class="stat-counter" id="counter-frames">0</div>
+                <p class="stat-sub">Across 312 prompts</p>
+            </section>
+
+            <section class="bento-card stats-card scroll-reveal" style="--animation-order: 3;">
+                <h3>Render Time Saved</h3>
+                <div class="stat-counter"><span id="counter-hours">0</span>h</div>
+                <p class="stat-sub">Compared to standard GPUs</p>
+            </section>
+
+            <section class="bento-card settings-card scroll-reveal" style="--animation-order: 4;">
+                <div class="card-header">
+                    <h2>Engine Preferences</h2>
+                </div>
+                <div class="settings-list">
+                    <div class="setting-item">
+                        <label>Default Resolution</label>
+                        <select class="custom-select">
+                            <option>4K Ultra HD (3840x2160)</option>
+                            <option>8K Cinematic (7680x4320)</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>Auto-save to Cloud</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label>Color Gamut</label>
+                        <select class="custom-select">
+                            <option>DCI-P3 (Cinematic)</option>
+                            <option>sRGB (Web Standard)</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bento-card recent-activity scroll-reveal" style="--animation-order: 5;">
+                <div class="card-header">
+                    <h2>Recent Output</h2>
+                </div>
+                <div id="profile-history-list" class="history-list">
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="profile.js"></script>
+</body>
+</html>

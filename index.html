@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina 8K | Cinematic AI Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app-loader" class="cinematic-loader">
+        <div class="loader-content">
+            <span class="logo-icon main-logo-anim"></span>
+            <div class="loader-text">LUMINA 8K</div>
+        </div>
+    </div>
+
+    <div id="auth-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h2>Access Lumina Engine</h2>
+            <p>Please authenticate to continue generating assets.</p>
+            
+            <div id="auth-error" class="error-msg hidden">Invalid credentials or CAPTCHA.</div>
+            
+            <div class="input-group">
+                <input type="email" id="auth-email" placeholder="Cinematic ID (Email)">
+            </div>
+            <div class="input-group">
+                <input type="password" id="auth-pass" placeholder="Passcode">
+            </div>
+            <div class="input-group captcha-group">
+                <span id="captcha-question" class="captcha-q"></span>
+                <input type="number" id="auth-captcha" placeholder="Answer">
+            </div>
+            
+            <div class="modal-actions">
+                <button id="cancel-auth" class="ghost-btn">Cancel</button>
+                <button id="submit-auth" class="primary-btn">Authenticate</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo">
+                <span class="logo-icon"></span>
+                <h1>Lumina 8K</h1>
+            </div>
+            <div class="user-profile">
+                <button id="profile-btn" class="avatar-btn">
+                    <div class="avatar"></div>
+                </button>
+            </div>
+        </header>
+
+        <main class="bento-grid">
+            <section class="bento-card prompt-studio scroll-reveal" style="--animation-order: 1;">
+                <div class="card-header">
+                    <h2>AI Prompt Studio</h2>
+                    <span class="status-indicator">Engine Ready</span>
+                </div>
+                
+                <div class="prompt-input-wrapper">
+                    <textarea id="prompt-input" placeholder="Describe your cinematic vision in high detail..."></textarea>
+                    
+                    <div class="style-chips">
+                        <button class="chip">Cinematic</button>
+                        <button class="chip">Cyberpunk</button>
+                        <button class="chip">Portrait</button>
+                        <button class="chip">DSLR 35mm</button>
+                        <button class="chip">Golden Hour</button>
+                    </div>
+                </div>
+
+                <div class="action-row">
+                    <button id="generate-btn" class="primary-btn pulse-hover">
+                        <span class="btn-text">Generate 4K Assets</span>
+                        <span class="btn-glow"></span>
+                    </button>
+                </div>
+
+                <div id="output-wrapper" class="output-container hidden">
+                    <div id="loading-state" class="loading-state hidden cinematic-overlay">
+                        <div class="spinner"></div>
+                        <p id="ai-process-text" class="typing-text"></p>
+                    </div>
+                    
+                    <div id="output-grid" class="output-grid hidden">
+                        </div>
+                </div>
+            </section>
+
+            <section class="bento-card controls scroll-reveal" style="--animation-order: 2;">
+                <div class="card-header">
+                    <h2>Generation Controls</h2>
+                </div>
+                <div class="sliders-container">
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <label>Golden Hour Intensity</label>
+                            <span class="slider-val">75%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value="75" class="custom-slider">
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <label>Vintage Film Grain</label>
+                            <span class="slider-val">30%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value="30" class="custom-slider">
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <label>Depth of Field</label>
+                            <span class="slider-val">f/1.4</span>
+                        </div>
+                        <input type="range" min="0" max="100" value="85" class="custom-slider">
+                    </div>
+                </div>
+            </section>
+
+            <section class="bento-card insights scroll-reveal" style="--animation-order: 3;">
+                <div class="card-header">
+                    <h2>Performance Insights</h2>
+                </div>
+                
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <span class="stat-label">Avg. Render</span>
+                        <span class="stat-value">1.4s</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Model Load</span>
+                        <span class="stat-value">84%</span>
+                    </div>
+                </div>
+
+                <div class="charts-container">
+                    <div class="chart-item">
+                        <div class="donut portraits">
+                            <div class="donut-inner">45%</div>
+                        </div>
+                        <span>Portraits</span>
+                    </div>
+                    <div class="chart-item">
+                        <div class="donut landscapes">
+                            <div class="donut-inner">35%</div>
+                        </div>
+                        <span>Landscapes</span>
+                    </div>
+                    <div class="chart-item">
+                        <div class="donut abstracts">
+                            <div class="donut-inner">20%</div>
+                        </div>
+                        <span>Abstracts</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bento-card history scroll-reveal" style="--animation-order: 4;">
+                <div class="card-header">
+                    <h2>Generation History</h2>
+                </div>
+                <div id="history-list" class="history-list">
+                    </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
