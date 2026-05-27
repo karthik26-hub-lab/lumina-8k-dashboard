@@ -1,0 +1,321 @@
+const LuminaApp = {
+    state: {
+        history: [],
+        isGenerating: false,
+        isLoggedIn: false,
+        captchaAnswer: 0
+    },
+
+    elements: {},
+
+    placeholderImages: [
+        '1536440136628-849c177e76a1', '1605806616949-1e87b487cb2a',
+        '1478720568478-884390626c9f', '1511884642898-4c92249e20b6',
+        '1485470733090-0aae1788d5af', '1534447677768-be436bb09401',
+        '1618005182384-a83a8bd57fbe', '1500462918059-b1a0cb512f1d'
+    ],
+
+    init() {
+        this.elements = {
+            loader: document.getElementById('app-loader'),
+            promptInput: document.getElementById('prompt-input'),
+            generateBtn: document.getElementById('generate-btn'),
+            chips: document.querySelectorAll('.chip'),
+            loadingState: document.getElementById('loading-state'),
+            outputWrapper: document.getElementById('output-wrapper'), // Renamed and targeted wrapper
+            outputGrid: document.getElementById('output-grid'),
+            historyList: document.getElementById('history-list'),
+            sliders: document.querySelectorAll('.custom-slider'),
+            profileBtn: document.getElementById('profile-btn'),
+            authModal: document.getElementById('auth-modal'),
+            authSubmit: document.getElementById('submit-auth'),
+            authCancel: document.getElementById('cancel-auth'),
+            authEmail: document.getElementById('auth-email'),
+            authPass: document.getElementById('auth-pass'),
+            authCaptcha: document.getElementById('auth-captcha'),
+            captchaQ: document.getElementById('captcha-question'),
+            authError: document.getElementById('auth-error'),
+            aiProcessText: document.getElementById('ai-process-text'),
+            revealElements: document.querySelectorAll('.scroll-reveal')
+        };
+
+        this.checkAuthStatus();
+        this.loadHistory();
+        this.bindEvents();
+        this.setupScrollObserver();
+        this.triggerAppOpenAnimation();
+    },
+
+    triggerAppOpenAnimation() {
+        if (!this.elements.loader) return;
+        setTimeout(() => {
+            this.elements.loader.classList.add('fade-out');
+            setTimeout(() => {
+                this.elements.loader.remove();
+                this.elements.revealElements.forEach((el, index) => {
+                    setTimeout(() => el.classList.add('visible'), index * 100);
+                });
+            }, 1000);
+        }, 1500);
+    },
+
+    setupScrollObserver() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+        this.elements.revealElements.forEach(el => observer.observe(el));
+    },
+
+    checkAuthStatus() {
+        this.state.isLoggedIn = localStorage.getItem('lumina_auth') === 'true';
+    },
+
+    generateCaptcha() {
+        const n1 = Math.floor(Math.random() * 10) + 1;
+        const n2 = Math.floor(Math.random() * 10) + 1;
+        this.state.captchaAnswer = n1 + n2;
+        if(this.elements.captchaQ) this.elements.captchaQ.textContent = `${n1} + ${n2} =`;
+        if(this.elements.authCaptcha) this.elements.authCaptcha.value = '';
+    },
+
+    openAuthModal() {
+        if (!this.elements.authModal) return;
+        this.generateCaptcha();
+        this.elements.authError.classList.add('hidden');
+        this.elements.authEmail.value = '';
+        this.elements.authPass.value = '';
+        this.elements.authModal.classList.remove('hidden');
+    },
+
+    closeAuthModal() {
+        if(this.elements.authModal) this.elements.authModal.classList.add('hidden');
+    },
+
+    handleLogin() {
+        const email = this.elements.authEmail.value;
+        const pass = this.elements.authPass.value;
+        const cap = parseInt(this.elements.authCaptcha.value);
+
+        if (!email || !pass || cap !== this.state.captchaAnswer) {
+            this.elements.authError.classList.remove('hidden');
+            this.generateCaptcha();
+            return;
+        }
+
+        this.elements.authError.classList.add('hidden');
+        this.elements.authModal.querySelector('.modal-card').classList.add('success-glow');
+        
+        setTimeout(() => {
+            this.state.isLoggedIn = true;
+            localStorage.setItem('lumina_auth', 'true');
+            this.closeAuthModal();
+            this.elements.authModal.querySelector('.modal-card').classList.remove('success-glow');
+            
+            if (this._pendingAction === 'profile') {
+                window.location.href = 'profile.html';
+            } else if (this._pendingAction === 'generate') {
+                this.handleGenerate();
+            }
+        }, 800);
+    },
+
+    bindEvents() {
+        if (this.elements.profileBtn) {
+            this.elements.profileBtn.addEventListener('click', () => {
+                if (!this.state.isLoggedIn) {
+                    this._pendingAction = 'profile';
+                    this.openAuthModal();
+                } else {
+                    window.location.href = 'profile.html';
+                }
+            });
+        }
+
+        if (this.elements.authCancel) {
+            this.elements.authCancel.addEventListener('click', () => this.closeAuthModal());
+        }
+        if (this.elements.authSubmit) {
+            this.elements.authSubmit.addEventListener('click', () => this.handleLogin());
+        }
+
+        if (this.elements.chips) {
+            this.elements.chips.forEach(chip => {
+                chip.addEventListener('click', (e) => {
+                    const styleText = e.target.textContent;
+                    const currentVal = this.elements.promptInput.value.trim();
+                    this.elements.promptInput.value = currentVal ? `${currentVal}, ${styleText}` : styleText;
+                });
+            });
+        }
+
+        if (this.elements.generateBtn) {
+            this.elements.generateBtn.addEventListener('click', () => {
+                if (!this.state.isLoggedIn) {
+                    this._pendingAction = 'generate';
+                    this.openAuthModal();
+                    return;
+                }
+                this.handleGenerate();
+            });
+        }
+
+        if (this.elements.sliders) {
+            this.elements.sliders.forEach(slider => {
+                slider.addEventListener('input', (e) => {
+                    const valDisplay = e.target.previousElementSibling.querySelector('.slider-val');
+                    const labelText = e.target.previousElementSibling.querySelector('label').textContent;
+                    
+                    if (labelText.includes('Depth')) {
+                        const fStops = ['f/1.2', 'f/1.4', 'f/1.8', 'f/2.8', 'f/4', 'f/5.6', 'f/8'];
+                        const index = Math.floor((e.target.value / 100) * (fStops.length - 1));
+                        valDisplay.textContent = fStops[index];
+                    } else {
+                        valDisplay.textContent = `${e.target.value}%`;
+                    }
+                });
+            });
+        }
+    },
+
+    handleGenerate() {
+        const promptText = this.elements.promptInput.value.trim();
+        if (!promptText) {
+            alert('Please describe your cinematic vision first.');
+            this.elements.promptInput.focus();
+            return;
+        }
+
+        if (this.state.isGenerating) return;
+        this.startLoadingSimulation();
+
+        setTimeout(() => {
+            this.finishGeneration(promptText);
+        }, 4500); 
+    },
+
+    startLoadingSimulation() {
+        this.state.isGenerating = true;
+        this.elements.generateBtn.querySelector('.btn-text').textContent = 'Rendering...';
+        this.elements.generateBtn.style.opacity = '0.5';
+        this.elements.generateBtn.style.pointerEvents = 'none';
+        
+        // Unhide the main output wrapper entirely so it expands the card dynamically
+        this.elements.outputWrapper.classList.remove('hidden');
+        this.elements.outputGrid.classList.add('hidden');
+        this.elements.loadingState.classList.remove('hidden');
+        this.elements.outputGrid.innerHTML = '';
+
+        const phases = [
+            "Initializing neural render engine...",
+            "Rendering frame 1/4...",
+            "Applying cinematic tone mapping...",
+            "Enhancing micro-details...",
+            "Finalizing 4K assets..."
+        ];
+        
+        let phaseIdx = 0;
+        this.elements.aiProcessText.textContent = phases[phaseIdx];
+        
+        this._loadingInterval = setInterval(() => {
+            phaseIdx++;
+            if (phaseIdx < phases.length) {
+                this.elements.aiProcessText.textContent = phases[phaseIdx];
+            }
+        }, 900);
+    },
+
+    finishGeneration(promptText) {
+        clearInterval(this._loadingInterval);
+        this.state.isGenerating = false;
+        
+        this.elements.generateBtn.querySelector('.btn-text').textContent = 'Generate 4K Assets';
+        this.elements.generateBtn.style.opacity = '1';
+        this.elements.generateBtn.style.pointerEvents = 'auto';
+        this.elements.loadingState.classList.add('hidden');
+        
+        const generatedImages = [];
+        const shuffledIds = [...this.placeholderImages].sort(() => 0.5 - Math.random());
+        
+        for (let i = 0; i < 4; i++) {
+            const imgUrl = `https://images.unsplash.com/photo-${shuffledIds[i]}?auto=format&fit=crop&w=600&q=80`;
+            generatedImages.push(imgUrl);
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'output-img-wrapper';
+            wrapper.style.animationDelay = `${i * 0.15}s`; 
+            wrapper.innerHTML = `
+                <img src="${imgUrl}" alt="AI Gen ${i + 1}">
+                <button class="download-btn">↓ Download 4K</button>
+            `;
+            this.elements.outputGrid.appendChild(wrapper);
+        }
+
+        this.elements.outputGrid.classList.remove('hidden');
+        this.addToHistory(promptText, generatedImages[0]);
+    },
+
+    addToHistory(prompt, thumbnail) {
+        const newRecord = {
+            id: Date.now(),
+            prompt: prompt,
+            thumbnail: thumbnail,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+
+        this.state.history.unshift(newRecord);
+        if (this.state.history.length > 20) this.state.history.pop();
+        
+        localStorage.setItem('lumina_history', JSON.stringify(this.state.history));
+        
+        if (this.elements.historyList.querySelector('.empty-msg')) {
+            this.elements.historyList.innerHTML = '';
+        }
+        
+        const div = this.createHistoryElement(newRecord);
+        this.elements.historyList.prepend(div);
+        
+        while (this.elements.historyList.children.length > 20) {
+            this.elements.historyList.removeChild(this.elements.historyList.lastChild);
+        }
+    },
+
+    createHistoryElement(item) {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = `
+            <img src="${item.thumbnail}" alt="Thumb" class="history-thumb">
+            <div class="history-details">
+                <div class="history-prompt">"${item.prompt}"</div>
+                <div class="history-time">${item.timestamp}</div>
+            </div>
+        `;
+        return div;
+    },
+
+    loadHistory() {
+        if (!this.elements.historyList) return;
+        const saved = localStorage.getItem('lumina_history');
+        if (saved) {
+            try {
+                this.state.history = JSON.parse(saved);
+                this.elements.historyList.innerHTML = '';
+                if (this.state.history.length === 0) {
+                    this.elements.historyList.innerHTML = '<p class="empty-msg" style="color: var(--text-muted); font-size: 0.8rem; text-align: center; margin-top: 2rem;">No generations yet.</p>';
+                } else {
+                    this.state.history.forEach(item => {
+                        this.elements.historyList.appendChild(this.createHistoryElement(item));
+                    });
+                }
+            } catch (e) {
+                console.error("Could not parse history", e);
+            }
+        }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => LuminaApp.init());
